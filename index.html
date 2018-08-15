@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+.ticks {
+  font: 10px sans-serif;
+}
+
+.track,
+.track-inset,
+.track-overlay {
+  stroke-linecap: round;
+}
+
+.track {
+  stroke: #000;
+  stroke-opacity: 0.3;
+  stroke-width: 10px;
+}
+
+.track-inset {
+  stroke: #ddd;
+  stroke-width: 8px;
+}
+
+.track-overlay {
+  pointer-events: stroke;
+  stroke-width: 50px;
+  stroke: transparent;
+  cursor: crosshair;
+}
+
+.handle {
+  fill: #fff;
+  stroke: #000;
+  stroke-opacity: 0.5;
+  stroke-width: 1.25px;
+}
+
+</style>
+<svg width="800" height="200"></svg>
+<script src="//d3js.org/d3.v4.min.js"></script>
+<body>
+
+<input id="min" type="number" value=5500></input>
+<input id="max" type="number" value=10000></input>
+<script>
+
+var longitude = 0;
+
+var min = d3.select("#min")
+	.on("change", updateRanges)
+var max = d3.select("#max")
+	.on("change", updateRanges)
+
+var minVal = Number(min.property("value"));
+var maxVal = Number(max.property("value"));
+
+var svg = d3.select("svg"),
+    margin = {right: 10, left: 10},
+    width = +svg.attr("width") - margin.left - margin.right,
+    height = +svg.attr("height");
+
+var x = d3.scaleLinear()
+    .domain([0, 1])
+    .range([0, width])
+    .clamp(true);
+
+var slider = svg.append("g")
+    .attr("class", "slider")
+    .attr("transform", "translate(" + margin.left + "," + height / 2 + ")");
+
+slider.append("line")
+    .attr("class", "track")
+    .attr("x1", x.range()[0])
+    .attr("x2", x.range()[1])
+  .select(function() { return this.parentNode.appendChild(this.cloneNode(true)); })
+    .attr("class", "track-inset")
+  .select(function() { return this.parentNode.appendChild(this.cloneNode(true)); })
+    .attr("class", "track-overlay")
+    .call(d3.drag()
+        .on("start.interrupt", function() { slider.interrupt(); })
+        .on("start drag", function() { hue(x.invert(d3.event.x)); }));
+
+slider.insert("g", ".track-overlay")
+    .attr("class", "ticks")
+    .attr("transform", "translate(0," + 18 + ")")
+  .selectAll("text")
+  .data(x.ticks(10))
+  .enter().append("text")
+    .attr("x", x)
+    .attr("text-anchor", "middle")
+    .text(updateTicks(x));
+
+var handle = slider.insert("circle", ".track-overlay")
+    .attr("class", "handle")
+    .attr("cx", longitude)
+    .attr("id", "longitude")
+    .attr("r", 9);
+
+d3.select("body").insert("h2", ":first-child").text(longitude);
+
+
+function hue(h) {
+  handle.attr("cx", x(h));
+  longitude = minVal + ((maxVal - minVal) * h);
+  d3.select("h2").text(Math.round(longitude));
+}
+
+function updateTicks(d) { return minVal + ((maxVal - minVal) * d); }
+
+function updateRanges() {
+  minVal = Number(d3.select("#min").property("value"))
+  maxVal = Number(d3.select("#max").property("value"))
+  updateTicks()
+}
+
+</script>
+</body>
