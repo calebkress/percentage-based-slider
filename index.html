@@ -124,11 +124,15 @@ function updateDisplayVal(h) {
 function updateRanges() {
   minVal = Number(d3.select("#min").property("value"))
   maxVal = Number(d3.select("#max").property("value"))
-  d3.select(".minText").text(minVal)
-  d3.select(".maxText").text(maxVal)
-  // update handle
-  longitude = Math.round(minVal + ((handle.attr("cx") / x.range()[1]) * (maxVal - minVal)));
-  d3.select("h2").text(longitude);
+  if (minVal < maxVal) {
+    d3.select(".minText").text(minVal)
+    d3.select(".maxText").text(maxVal)
+    // update handle
+    longitude = Math.round(minVal + ((handle.attr("cx") / x.range()[1]) * (maxVal - minVal)));
+    d3.select("h2").text(longitude);
+  } else {
+    d3.select("h2").text("invalid ranges")
+  }
 }
 
 </script>
