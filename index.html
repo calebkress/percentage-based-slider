@@ -46,7 +46,7 @@ body {
 <body>
 
 <svg width="800" height="200"></svg>
-<input id="min" type="number" value=5500></input>
+<input id="min" type="number" value=5000></input>
 <input id="max" type="number" value=10000></input>
 <script>
 
@@ -126,8 +126,9 @@ function updateRanges() {
   maxVal = Number(d3.select("#max").property("value"))
   d3.select(".minText").text(minVal)
   d3.select(".maxText").text(maxVal)
-  d3.select("h2").text(handle.attr("cx"));
-  
+  // update handle
+  longitude = Math.round(minVal + ((handle.attr("cx") / x.range()[1]) * (maxVal - minVal)));
+  d3.select("h2").text(longitude);
 }
 
 </script>
