@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <style>
+body {
+  display: flex;
+  flex-direction: column;
+}
 
 .ticks {
   font: 10px sans-serif;
@@ -38,23 +42,23 @@
 }
 
 </style>
-<svg width="800" height="200"></svg>
 <script src="//d3js.org/d3.v4.min.js"></script>
 <body>
 
+<svg width="800" height="200"></svg>
 <input id="min" type="number" value=5500></input>
 <input id="max" type="number" value=10000></input>
 <script>
-
-var longitude = 0;
 
 var min = d3.select("#min")
 	.on("change", updateRanges)
 var max = d3.select("#max")
 	.on("change", updateRanges)
 
+
 var minVal = Number(min.property("value"));
 var maxVal = Number(max.property("value"));
+var longitude = minVal + (maxVal - minVal) / 2;
 
 var svg = d3.select("svg"),
     margin = {right: 10, left: 10},
@@ -63,7 +67,7 @@ var svg = d3.select("svg"),
 
 var x = d3.scaleLinear()
     .domain([0, 1])
-    .range([0, width])
+    .range([40, width - 40])
     .clamp(true);
 
 var slider = svg.append("g")
@@ -74,45 +78,56 @@ slider.append("line")
     .attr("class", "track")
     .attr("x1", x.range()[0])
     .attr("x2", x.range()[1])
-  .select(function() { return this.parentNode.appendChild(this.cloneNode(true)); })
-    .attr("class", "track-inset")
+  // .select(function() { return this.parentNode.appendChild(this.cloneNode(true)); })
+  //   .attr("class", "track-inset")
   .select(function() { return this.parentNode.appendChild(this.cloneNode(true)); })
     .attr("class", "track-overlay")
     .call(d3.drag()
-        .on("start.interrupt", function() { slider.interrupt(); })
-        .on("start drag", function() { hue(x.invert(d3.event.x)); }));
+        // .on("start.interrupt", function() { slider.interrupt(); })
+        .on("start drag", function() { updateDisplayVal(x.invert(d3.event.x)); }));
 
-slider.insert("g", ".track-overlay")
-    .attr("class", "ticks")
-    .attr("transform", "translate(0," + 18 + ")")
-  .selectAll("text")
-  .data(x.ticks(10))
-  .enter().append("text")
-    .attr("x", x)
-    .attr("text-anchor", "middle")
-    .text(updateTicks(x));
+slider.append("text")
+  .attr("class", "minText")
+  .attr("x", 0)
+  .text(minVal)
+slider.append("text")
+  .attr("class", "maxText")
+  .attr("x", x.range()[1])
+  .text(maxVal)
+// slider.insert("g", ".track-overlay")
+//     .attr("class", "ticks")
+//     .attr("transform", "translate(0," + 18 + ")")
+//   .selectAll("text")
+//   .data(x.ticks(10))
+//   .enter().append("text")
+//     .attr("x", x)
+//     .attr("text-anchor", "middle")
+//     .text(updateTicks(x));
 
 var handle = slider.insert("circle", ".track-overlay")
     .attr("class", "handle")
-    .attr("cx", longitude)
+    .attr("cx", x.range()[1] / 2)
     .attr("id", "longitude")
     .attr("r", 9);
 
 d3.select("body").insert("h2", ":first-child").text(longitude);
 
 
-function hue(h) {
+function updateDisplayVal(h) {
   handle.attr("cx", x(h));
   longitude = minVal + ((maxVal - minVal) * h);
   d3.select("h2").text(Math.round(longitude));
 }
 
-function updateTicks(d) { return minVal + ((maxVal - minVal) * d); }
+// function updateTicks(d) { return minVal + ((maxVal - minVal) * d); }
 
 function updateRanges() {
   minVal = Number(d3.select("#min").property("value"))
   maxVal = Number(d3.select("#max").property("value"))
-  updateTicks()
+  d3.select(".minText").text(minVal)
+  d3.select(".maxText").text(maxVal)
+  d3.select("h2").text(handle.attr("cx"));
+  
 }
 
 </script>
