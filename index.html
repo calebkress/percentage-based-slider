@@ -50,21 +50,24 @@ body {
 <input id="max" type="number" value=10000></input>
 <script>
 
+// select html inputs
 var min = d3.select("#min")
 	.on("change", updateRanges)
 var max = d3.select("#max")
 	.on("change", updateRanges)
 
-
+// create default values for max, min, and display value
 var minVal = Number(min.property("value"));
 var maxVal = Number(max.property("value"));
 var longitude = minVal + (maxVal - minVal) / 2;
 
+// create svg
 var svg = d3.select("svg"),
     margin = {right: 10, left: 10},
     width = +svg.attr("width") - margin.left - margin.right,
     height = +svg.attr("height");
 
+// define slider scale
 var x = d3.scaleLinear()
     .domain([0, 1])
     .range([40, width - 40])
@@ -74,18 +77,24 @@ var slider = svg.append("g")
     .attr("class", "slider")
     .attr("transform", "translate(" + margin.left + "," + height / 2 + ")");
 
+// add line to slider
 slider.append("line")
     .attr("class", "track")
     .attr("x1", x.range()[0])
     .attr("x2", x.range()[1])
-  // .select(function() { return this.parentNode.appendChild(this.cloneNode(true)); })
-  //   .attr("class", "track-inset")
   .select(function() { return this.parentNode.appendChild(this.cloneNode(true)); })
     .attr("class", "track-overlay")
     .call(d3.drag()
-        // .on("start.interrupt", function() { slider.interrupt(); })
         .on("start drag", function() { updateDisplayVal(x.invert(d3.event.x)); }));
 
+// add circle to slider
+var handle = slider.insert("circle", ".track-overlay")
+  .attr("class", "handle")
+  .attr("cx", x.range()[1] / 2)
+  .attr("id", "longitude")
+  .attr("r", 9);
+
+// append max and min values to slider
 slider.append("text")
   .attr("class", "minText")
   .attr("x", 0)
@@ -94,36 +103,24 @@ slider.append("text")
   .attr("class", "maxText")
   .attr("x", x.range()[1])
   .text(maxVal)
-// slider.insert("g", ".track-overlay")
-//     .attr("class", "ticks")
-//     .attr("transform", "translate(0," + 18 + ")")
-//   .selectAll("text")
-//   .data(x.ticks(10))
-//   .enter().append("text")
-//     .attr("x", x)
-//     .attr("text-anchor", "middle")
-//     .text(updateTicks(x));
 
-var handle = slider.insert("circle", ".track-overlay")
-    .attr("class", "handle")
-    .attr("cx", x.range()[1] / 2)
-    .attr("id", "longitude")
-    .attr("r", 9);
-
+// append summary text to top of body
 d3.select("body").insert("h2", ":first-child").text(longitude);
 
 
 function updateDisplayVal(h) {
+  // update handle position
   handle.attr("cx", x(h));
+  // update summary text
   longitude = minVal + ((maxVal - minVal) * h);
   d3.select("h2").text(Math.round(longitude));
 }
 
-// function updateTicks(d) { return minVal + ((maxVal - minVal) * d); }
-
 function updateRanges() {
+  // update min and max values
   minVal = Number(d3.select("#min").property("value"))
   maxVal = Number(d3.select("#max").property("value"))
+  // check if ranges are valid
   if (minVal < maxVal) {
     d3.select(".minText").text(minVal)
     d3.select(".maxText").text(maxVal)
